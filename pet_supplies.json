@@ -1,0 +1,14 @@
+[
+  {
+    "review": "Great product! My dog loves it.",
+    "rating": 5
+  },
+  {
+    "review": "Terrible quality, broke within a week.",
+    "rating": 1
+  },
+  {
+    "review": "Okay, not the best but not the worst.",
+    "rating": 3
+  }
+]
