@@ -7,46 +7,56 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 
-# Load and sample data
-with open('./data/pet_supplies.json', 'r') as f:
-    data = json.load(f)
+# Load JSON data
+file_path = './data/pet_supplies.json'  # Update the path as needed
+with open(file_path, 'r') as file:
+    data = json.load(file)
 
-# Randomly select reviews between 100-1000
-selected_reviews = random.sample(data, k=random.randint(100, 1000))
+# Extract a random subset of reviews (100-1000)
+sample_size = random.randint(100, 1000)
+sample_data = random.sample(data, k=sample_size)
 
 # Extract reviews and ratings
-reviews = [item['review'] for item in selected_reviews]
-ratings = [item['rating'] for item in selected_reviews]
+reviews = [item['review'] for item in sample_data]
+ratings = [item['rating'] for item in sample_data]
 
-# Save to a new file
-subset_data = [{'review': review, 'rating': rating} for review, rating in zip(reviews, ratings)]
-with open('./data/selected_reviews.json', 'w') as f:
-    json.dump(subset_data, f)
+# Save the extracted subset to a new JSON file
+output_file_path = './data/selected_reviews.json'  # Update the path as needed
+with open(output_file_path, 'w') as file:
+    json.dump(sample_data, file, indent=4)
 
-# Clean text
+# Clean the text
 def clean_text(text):
+    # Fix contractions
     text = contractions.fix(text)
+    # Convert to lowercase
     text = text.lower()
-    text = re.sub(f'[{re.escape(punctuation)}]', '', text)
+    # Remove punctuation
+    text = re.sub(f"[{re.escape(punctuation)}]", '', text)
+    # Remove numbers
     text = re.sub(r'\w*\d\w*', '', text)
-    stopwords = [line.strip() for line in open('./Machinelearning/data/stopwords.txt', 'r')]
+    # Remove stopwords
+    stopwords_path = './Machinelearning/data/stopwords.txt'  # Update path
+    with open(stopwords_path, 'r') as file:
+        stopwords = {line.strip() for line in file}
     return ' '.join(word for word in text.split() if word not in stopwords)
 
+# Apply cleaning to all reviews
 cleaned_reviews = [clean_text(review) for review in reviews]
 
-# Vectorize the text
+# Convert text to numerical representation
 vectorizer = CountVectorizer(ngram_range=(1, 2))
-vectors = vectorizer.fit_transform(cleaned_reviews)
+X = vectorizer.fit_transform(cleaned_reviews)
 
-# Split data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(vectors, ratings, test_size=0.2, random_state=42)
+# Split into training and testing sets (80-20)
+X_train, X_test, y_train, y_test = train_test_split(X, ratings, test_size=0.2, random_state=42)
 
 # Train an SVM classifier
 clf = SVC(kernel='linear')
 clf.fit(X_train, y_train)
 
 # Test the classifier
-predictions = clf.predict(X_test)
 accuracy = clf.score(X_test, y_test)
 
-print("Accuracy:", accuracy)
+# Output results
+print(f"Model Accuracy: {accuracy * 100:.2f}%")
